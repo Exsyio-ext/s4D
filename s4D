@@ -1,0 +1,34 @@
+#!/bin/bash
+
+function help() {
+	echo ' Author => Exsyio tech'
+	echo '  -c crt.sh'
+	echo '	search subdomain with crtsh'
+	echo '  -p certspotter'
+	echo '	search subdomain with certspotter'
+	echo '  --http ' 
+	echo '  	check subdomain on port 80 with httprobe'
+	echo '  --https '
+	echo ' 	check subdomain on port 443 with httprobe'
+	echo '  -h show this help menu'
+	echo '	example: ./s4D -c google.com'
+	echo '	example: ./s4D --http/s google.txt'
+
+}
+case $1 in
+	--https ) cat $2  | httprobe -p https:443 -s http:80
+	;;
+	--http ) cat $2 | httprobe -p http:80 -s https:443
+	;;
+	-c ) curl -s https://crt.sh/?q\=%.$2\&output\=json | jq -r '.[].name_value' | sed 's/\*\.//g' | sort -u
+	;;
+	-p ) curl -s https://certspotter.com/api/v0/certs\?domain\=$2 | jq '.[].dns_names[]' | sed 's/\"//g' | sed 's/\*\.//g' | sort -u | grep $2
+#	;;
+#	-C ) for s4D in $(cat $2); do
+#	     	echo -e -n "$s4D "
+#	     	curl -s -I $s4D | grep HTTP | awk '{print $2}'; done
+	;;
+	-h ) help
+	;;
+	*  ) echo ' 	-h for help'
+esac
